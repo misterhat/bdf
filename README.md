@@ -12,15 +12,15 @@ An example Commodore 64 8x8 point font is included.
 
 ## API
 
-* Constructor __**`BDF(data)`**__
+* **`bdf = new BDF(data)`**__
 
-Initializes a BDF font instance and loads font data string.
+Initializes a BDF font instance and optionally loads font data string.
 
-* __**`load(data)`**__
+* __**`bdf.load(data)`**__
 
 Loads font data string. Throws if unable to parse.
 
-* __**`meta`**__ (property)
+* __**`bdf.meta`**__ (property)
 
 An object containing metadata about the font once loaded. This includes the font version, name, size and several other properties.
 
@@ -36,7 +36,7 @@ Example meta object:
 }
 ```
 
-* __**`glyphs`**__ (property)
+* __**`bdf.glyphs`**__ (property)
 
 An object containing data for every glyph in the font. Each key in this object
 represents the character encoding.
@@ -84,7 +84,7 @@ instead of being laid out as `1`s and `0`s in an array.
 Example bytes object, for the character `'A'` with code `65`:
 `[ 24, 60, 102, 126, 102, 102, 102, 0 ]`
 
-* __**`writeText(text, options)`**__
+* __**`bdf.writeText(text, options)`**__
 
 Convenient way of creating a matrix concatenating bitmap information for
 several glyphs in this font.
@@ -100,7 +100,7 @@ This method returns an object with a property called `grid`, containing
 bitmap rows, which are arrays of bits. It also contains `width` and `height`
 properties defining the bitmap bounds.
 
-* __**`drawText(text, canvas, options)`**__
+* __**`bdf.drawText(text, canvas, options)`**__
 Renders a string of text to a canvas.
 
 `text` is a string containing the text to convert to a bitmap.

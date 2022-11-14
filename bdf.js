@@ -3,7 +3,9 @@ class BDF {
         this.meta = {};
         this.glyphs = {};
 
-        this.load(data);
+        if (data && data.length) {
+            this.load(data);
+        }
     }
 
     load(data) {
@@ -103,24 +105,16 @@ class BDF {
                         const bytesLine = fontLines[i + 1];
                         currentChar.bitmap[row] = [];
 
-                        for (
-                            let byteIndex = 0;
-                            byteIndex < bytesPerLine;
-                            byteIndex++
-                        ) {
-                            const byteString = bytesLine.substr(
-                                byteIndex * 2,
-                                2
-                            );
+                        for (const byteString of bytesLine.match(/.{1,2}/g)) {
+                            const byte = Number.parseInt(byteString, 16);
 
-                            const byte = parseInt(byteString, 16);
                             currentChar.bytes.push(byte);
 
-                            for (let bit = 7; bit >= 0; bit--) {
-                                currentChar.bitmap[row][
-                                    byteIndex * 8 + (7 - bit)
-                                ] = byte & (1 << bit) ? 1 : 0;
-                            }
+                            currentChar.bitmap[row].push(...byte
+                                .toString(2)
+                                .padStart(8, '0')
+                                .split('')
+                                .map(Number));
                         }
                     }
                     break;
@@ -143,6 +137,10 @@ class BDF {
     }
 
     writeText(text, options = {}, _bitmap) {
+        if (!this.meta.boundingBox) {
+            throw new Error('FOUNTBOUNDINGBOX not defined');
+        }
+
         const kerningBias = options.kerningBias || 0;
 
         const height = this.meta.boundingBox.height;
@@ -244,7 +242,6 @@ class BDF {
         context.fillStyle = colour;
 
         const _bitmap = this.writeText(text, options);
-
         const { grid } = _bitmap;
 
         for (let y = 0; y < grid.length; y++) {
@@ -261,6 +258,95 @@ class BDF {
         }
 
         return _bitmap;
+    }
+
+    getCharacters() {
+        return Object.keys(this.glyphs).map((charCode) =>
+            String.fromCharCode(charCode)
+        );
+    }
+
+    toString() {
+        const { size, boundingBox: bounds, properties } = this.meta;
+
+        const lines = [];
+
+        lines.push(`STARTFONT ${this.meta.version}`);
+        lines.push(`FONT ${this.meta.name}`);
+
+        lines.push(
+            `SIZE ${size.points} ${size.resolutionX} ${size.resolutionY}`
+        );
+
+        lines.push(
+            'FONTBOUNDINGBOX ' +
+                `${bounds.width} ${bounds.height} ${bounds.x} ${bounds.y}`
+        );
+
+        lines.push(
+            `STARTPROPERTIES ${Object.keys(this.meta.properties).length}`
+        );
+
+        if (properties.fontDescent) {
+            lines.push(`FONT_DESCENT ${properties.fontDescent}`);
+        }
+
+        if (properties.fontAscent) {
+            lines.push(`FONT_ASCENT ${properties.fontAscent}`);
+        }
+
+        if (properties.defaultChar) {
+            lines.push(`DEFAULT_CHAR ${properties.defaultChar}`);
+        }
+
+        lines.push('ENDPROPERTIES');
+
+        lines.push(`CHARS ${this.meta.totalChars}`);
+
+        for (const glyph of Object.values(this.glyphs)) {
+            const { boundingBox: bounds } = glyph;
+
+            lines.push(`STARTCHAR ${glyph.name}`);
+
+            lines.push(`ENCODING ${glyph.code}`);
+
+            lines.push(
+                `SWIDTH ${glyph.scalableWidthX} ${glyph.scalableWidthY}`
+            );
+
+            lines.push(`DWIDTH ${glyph.deviceWidthX} ${glyph.deviceWidthY}`);
+
+            lines.push(
+                `BBX ${bounds.width} ${bounds.height} ${bounds.x} ${bounds.y}`
+            );
+
+            lines.push('BITMAP');
+
+            let byteIndex = 0;
+
+            for (const row of glyph.bitmap) {
+                let rowString = '';
+
+                const bytesPerLine = Math.ceil(row.length / 8);
+
+                for (let i = 0; i < bytesPerLine; i++) {
+                    rowString += glyph.bytes[byteIndex]
+                        .toString(16)
+                        .toUpperCase()
+                        .padStart(2, '0');
+
+                    byteIndex += 1;
+                }
+
+                lines.push(rowString);
+            }
+
+            lines.push('ENDCHAR');
+        }
+
+        lines.push('ENDFONT');
+
+        return lines.join('\n').trim();
     }
 }
 
