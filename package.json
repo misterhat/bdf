@@ -1,0 +1,26 @@
+{
+  "name": "@misterhat/bdf",
+  "version": "2.0.0",
+  "description": "library for reading and drawing Adobe Glyph Bitmap Distribution font files",
+  "main": "bdf.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/misterhat/bdf.git"
+  },
+  "keywords": [
+    "bdf",
+    "glyph",
+    "bitmap",
+    "font"
+  ],
+  "author": "Victor Porof <victor.porof@gmail.com>",
+  "license": "MPL-2.0",
+  "bugs": {
+    "url": "https://github.com/misterhat/bdf/issues"
+  },
+  "homepage": "https://github.com/misterhat/bdf#readme"
+}
